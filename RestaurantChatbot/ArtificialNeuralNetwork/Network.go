@@ -5,6 +5,7 @@ import (
 	mh "RestaurantChatbot/MatrixHelper"
 	"errors"
 	"gonum.org/v1/gonum/mat"
+	"os"
 )
 
 var (
@@ -121,18 +122,88 @@ func (net *Network) AddLayer(numberOfNeurons int, activationFunction actf.Activa
 	net.outputLayer = CreateLayer(net.outputLayer.numNeurons, net.hiddenLayers[len(net.hiddenLayers)-1].numNeurons, activationFunction)
 }
 
-func (net *Network) SaveModel() {
-	// Save number of hidden layer
+// SaveModelWeights saves the current weights to the given file. Will NOT save the structure of the model!
+func (net *Network) SaveModelWeights(fileName string) {
+	file, err := os.Create(fileName+".model")
+
+	// Check for error
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
 
 	// Save weights of hidden layers
+	for i := 0; i < len(net.hiddenLayers); i++ {
+		// Dumb conversion to mat.Dense since casting is not an option
+		var weights mat.Dense
+		r, c := net.hiddenLayers[i].weights.Dims()
+		weights.Add(net.hiddenLayers[i].weights, mh.NewZeroes(r, c))
+
+		_, err := weights.MarshalBinaryTo(file)
+
+		if err != nil {
+			print(err.Error())
+			return
+		}
+	}
 
 	// Save weights of output layer
+	var weights mat.Dense
+	r, c := net.outputLayer.weights.Dims()
+	weights.Add(net.outputLayer.weights, mh.NewZeroes(r, c))
+
+	_, err = weights.MarshalBinaryTo(file)
+
+	if err != nil {
+		print(err.Error())
+		return
+	}
 }
 
-func (net *Network) LoadModel() {
-	// Read number of hidden layers
+// LoadModelWeights loads weights from given file. It does NOT create the model, if the structure of the Network is different from the one originally used to write the file there will be a critical error.
+func (net *Network) LoadModelWeights(fileName string) {
+	file, err := os.Open(fileName+".model")
 
-	// Create network with given numbers
+	if err != nil {
+		print(err.Error())
+		return
+	}
 
-	// Load weights to network
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
+
+	// Load network weights with given numbers
+	for i := 0; i < len(net.hiddenLayers); i++ {
+		var weights mat.Dense
+		_, err := weights.UnmarshalBinaryFrom(file)
+
+		if err != nil {
+			print(err.Error())
+			return
+		}
+
+		net.hiddenLayers[i].weights = &weights
+	}
+
+	// Load output layer weights
+	var weights mat.Dense
+	_, err = weights.UnmarshalBinaryFrom(file)
+
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	net.outputLayer.weights = &weights
 }

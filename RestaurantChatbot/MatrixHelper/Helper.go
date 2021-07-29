@@ -10,7 +10,7 @@ import (
 // PrintMatrix prints the given matrix onto the console with a nice format.
 func PrintMatrix(matrix mat.Matrix) {
 	A := mat.Formatted(matrix, mat.Squeeze())
-	fmt.Printf("%4.3f", A)
+	fmt.Printf("%4.6f", A)
 	print("\n")
 }
 
@@ -28,6 +28,15 @@ func NewOnes(r, c int) *mat.Dense {
 	data := make([]float64, r*c)
 	for i := 0; i < r*c; i++ {
 		data[i] = 1
+	}
+	return mat.NewDense(r, c, data)
+}
+
+// NewZeroes returns a new Zeroes matrix with the given dimensions.
+func NewZeroes(r, c int) *mat.Dense {
+	data := make([]float64, r*c)
+	for i := 0; i < r*c; i++ {
+		data[i] = 0
 	}
 	return mat.NewDense(r, c, data)
 }

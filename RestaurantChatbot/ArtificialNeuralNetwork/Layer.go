@@ -56,3 +56,7 @@ func (layer *Layer) OutputLayerError(target mat.Dense) mat.Dense {
 func (layer *Layer) SetError(err mat.Dense) {
 	layer.error = &err
 }
+
+func (layer *Layer) PrintWeights() {
+	MatrixHelper.PrintMatrix(layer.weights)
+}
